@@ -27,6 +27,7 @@ export default function AdminActorForm() {
   const [videos, setVideos] = useState<{ project_name: string; youtube_url: string }[]>([]);
   const [awards, setAwards] = useState<{ title: string; tag_style: string }[]>([]);
   const [tags, setTags] = useState<{ tag_text: string; tag_style: string }[]>([]);
+  const [images, setImages] = useState<{ image_url: string }[]>([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
