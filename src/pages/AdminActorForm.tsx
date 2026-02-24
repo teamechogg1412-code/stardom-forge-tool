@@ -83,7 +83,7 @@ export default function AdminActorForm() {
       }
 
       // Insert related data
-      const promises: Promise<any>[] = [];
+      const promises: PromiseLike<any>[] = [];
 
       if (careers.length > 0) {
         promises.push(supabase.from('careers').insert(careers.map((c, i) => ({ ...c, actor_id: actorId, sort_order: i }))));
