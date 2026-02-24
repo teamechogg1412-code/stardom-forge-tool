@@ -75,6 +75,7 @@ export default function AdminActorForm() {
         if (error) throw error;
         // Delete existing related data
         await Promise.all([
+          supabase.from('actor_images').delete().eq('actor_id', id),
           supabase.from('careers').delete().eq('actor_id', id),
           supabase.from('insights').delete().eq('actor_id', id),
           supabase.from('keywords').delete().eq('actor_id', id),
