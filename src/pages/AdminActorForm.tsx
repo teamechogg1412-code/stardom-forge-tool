@@ -54,6 +54,7 @@ export default function AdminActorForm() {
     setVideos(existingActor.videos.map(v => ({ project_name: v.project_name, youtube_url: v.youtube_url })));
     setAwards(existingActor.awards.map(a => ({ title: a.title, tag_style: a.tag_style })));
     setTags(existingActor.actor_tags.map(t => ({ tag_text: t.tag_text, tag_style: t.tag_style })));
+    setImages(existingActor.images.map(img => ({ image_url: img.image_url })));
   }, [existingActor]);
 
   const handleSave = async () => {
