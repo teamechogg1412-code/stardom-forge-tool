@@ -63,7 +63,8 @@ export function useActorById(id: string) {
         .single();
       if (error) throw error;
 
-      const [careers, insights, keywords, videos, awards, tags] = await Promise.all([
+      const [images, careers, insights, keywords, videos, awards, tags] = await Promise.all([
+        supabase.from('actor_images').select('*').eq('actor_id', id).order('sort_order'),
         supabase.from('careers').select('*').eq('actor_id', id).order('sort_order'),
         supabase.from('insights').select('*').eq('actor_id', id).maybeSingle(),
         supabase.from('keywords').select('*').eq('actor_id', id),
@@ -74,6 +75,7 @@ export function useActorById(id: string) {
 
       return {
         ...actor,
+        images: images.data || [],
         careers: careers.data || [],
         insights: insights.data || null,
         keywords: keywords.data || [],

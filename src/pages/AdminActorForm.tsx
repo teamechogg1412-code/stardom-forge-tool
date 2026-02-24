@@ -154,7 +154,6 @@ export default function AdminActorForm() {
             {field('name_ko', '이름 (한글) *')}
             {field('name_en', '이름 (영문)')}
             {field('slug', 'URL 슬러그 *')}
-            {field('profile_image_url', '프로필 이미지 URL')}
             {field('instagram_id', '인스타그램 ID')}
             {field('followers', '팔로워')}
             {field('posts', '게시물 수')}
@@ -165,6 +164,20 @@ export default function AdminActorForm() {
             {field('language', '언어')}
             {field('brand_keyword', '브랜드 키워드')}
           </div>
+        </Section>
+
+        {/* 이미지 */}
+        <Section title="프로필 이미지 (여러 장)">
+          {images.map((img, i) => (
+            <div key={i} className="flex gap-2 items-center mb-2">
+              <span className="text-xs font-bold text-muted-foreground w-6 shrink-0">{i + 1}</span>
+              <Input placeholder="이미지 URL" value={img.image_url} onChange={e => { const n = [...images]; n[i].image_url = e.target.value; setImages(n); }} className="flex-1" />
+              {img.image_url && <img src={img.image_url} alt="" className="w-10 h-10 rounded object-cover shrink-0 border border-border" />}
+              <Button variant="outline" size="sm" onClick={() => setImages(images.filter((_, j) => j !== i))} className="text-destructive shrink-0">✕</Button>
+            </div>
+          ))}
+          <Button variant="outline" size="sm" onClick={() => setImages([...images, { image_url: '' }])}>+ 이미지 추가</Button>
+          <p className="text-xs text-muted-foreground mt-2">인스타그램처럼 좌우로 넘겨볼 수 있습니다.</p>
         </Section>
 
         {/* 경력 */}
