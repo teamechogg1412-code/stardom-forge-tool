@@ -27,6 +27,7 @@ export default function AdminActorForm() {
   const [videos, setVideos] = useState<{ project_name: string; youtube_url: string }[]>([]);
   const [awards, setAwards] = useState<{ title: string; tag_style: string }[]>([]);
   const [tags, setTags] = useState<{ tag_text: string; tag_style: string }[]>([]);
+  const [images, setImages] = useState<{ image_url: string }[]>([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -53,6 +54,7 @@ export default function AdminActorForm() {
     setVideos(existingActor.videos.map(v => ({ project_name: v.project_name, youtube_url: v.youtube_url })));
     setAwards(existingActor.awards.map(a => ({ title: a.title, tag_style: a.tag_style })));
     setTags(existingActor.actor_tags.map(t => ({ tag_text: t.tag_text, tag_style: t.tag_style })));
+    setImages(existingActor.images.map(img => ({ image_url: img.image_url })));
   }, [existingActor]);
 
   const handleSave = async () => {
@@ -73,6 +75,7 @@ export default function AdminActorForm() {
         if (error) throw error;
         // Delete existing related data
         await Promise.all([
+          supabase.from('actor_images').delete().eq('actor_id', id),
           supabase.from('careers').delete().eq('actor_id', id),
           supabase.from('insights').delete().eq('actor_id', id),
           supabase.from('keywords').delete().eq('actor_id', id),
@@ -114,6 +117,9 @@ export default function AdminActorForm() {
       if (tags.length > 0) {
         promises.push(supabase.from('actor_tags').insert(tags.map(t => ({ ...t, actor_id: actorId }))));
       }
+      if (images.length > 0) {
+        promises.push(supabase.from('actor_images').insert(images.map((img, i) => ({ ...img, actor_id: actorId, sort_order: i }))));
+      }
 
       await Promise.all(promises);
       qc.invalidateQueries({ queryKey: ['actors'] });
@@ -148,7 +154,6 @@ export default function AdminActorForm() {
             {field('name_ko', '이름 (한글) *')}
             {field('name_en', '이름 (영문)')}
             {field('slug', 'URL 슬러그 *')}
-            {field('profile_image_url', '프로필 이미지 URL')}
             {field('instagram_id', '인스타그램 ID')}
             {field('followers', '팔로워')}
             {field('posts', '게시물 수')}
@@ -159,6 +164,20 @@ export default function AdminActorForm() {
             {field('language', '언어')}
             {field('brand_keyword', '브랜드 키워드')}
           </div>
+        </Section>
+
+        {/* 이미지 */}
+        <Section title="프로필 이미지 (여러 장)">
+          {images.map((img, i) => (
+            <div key={i} className="flex gap-2 items-center mb-2">
+              <span className="text-xs font-bold text-muted-foreground w-6 shrink-0">{i + 1}</span>
+              <Input placeholder="이미지 URL" value={img.image_url} onChange={e => { const n = [...images]; n[i].image_url = e.target.value; setImages(n); }} className="flex-1" />
+              {img.image_url && <img src={img.image_url} alt="" className="w-10 h-10 rounded object-cover shrink-0 border border-border" />}
+              <Button variant="outline" size="sm" onClick={() => setImages(images.filter((_, j) => j !== i))} className="text-destructive shrink-0">✕</Button>
+            </div>
+          ))}
+          <Button variant="outline" size="sm" onClick={() => setImages([...images, { image_url: '' }])}>+ 이미지 추가</Button>
+          <p className="text-xs text-muted-foreground mt-2">인스타그램처럼 좌우로 넘겨볼 수 있습니다.</p>
         </Section>
 
         {/* 경력 */}

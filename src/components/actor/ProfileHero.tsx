@@ -1,14 +1,15 @@
 import type { ActorFull } from '@/types/actor';
+import ImageCarousel from './ImageCarousel';
 
 export default function ProfileHero({ actor }: { actor: ActorFull }) {
   return (
     <section className="min-h-screen flex flex-col md:flex-row items-center gap-16 px-[8%] py-28 border-b border-border">
       <div className="flex-shrink-0 w-full max-w-[450px]">
-        {actor.profile_image_url ? (
-          <img src={actor.profile_image_url} alt={actor.name_ko} className="rounded-lg shadow-[15px_15px_40px_rgba(0,0,0,0.08)] w-full" />
-        ) : (
-          <div className="aspect-[3/4] bg-muted rounded-lg flex items-center justify-center text-muted-foreground text-lg">No Image</div>
-        )}
+        <ImageCarousel
+          images={actor.images}
+          fallbackUrl={actor.profile_image_url}
+          fallbackInitial={actor.name_ko[0]}
+        />
       </div>
 
       <div className="flex-1 flex flex-col gap-5">

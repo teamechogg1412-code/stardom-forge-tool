@@ -16,10 +16,17 @@ export interface Actor {
   created_at: string;
 }
 
+export interface ActorImage {
+  id: string;
+  actor_id: string;
+  image_url: string;
+  sort_order: number;
+}
+
 export interface Career {
   id: string;
   actor_id: string;
-  category: string; // 'drama_film' | 'brand_editorial'
+  category: string;
   year_label: string;
   title: string;
   description: string | null;
@@ -44,7 +51,7 @@ export interface Keyword {
   id: string;
   actor_id: string;
   keyword: string;
-  size_class: string; // 'tag-xl' | 'tag-l' | 'tag-m' | 'tag-s'
+  size_class: string;
 }
 
 export interface Video {
@@ -66,10 +73,11 @@ export interface ActorTag {
   id: string;
   actor_id: string;
   tag_text: string;
-  tag_style: string; // 'normal' | 'important' | 'award'
+  tag_style: string;
 }
 
 export interface ActorFull extends Actor {
+  images: ActorImage[];
   careers: Career[];
   insights: Insight | null;
   keywords: Keyword[];
