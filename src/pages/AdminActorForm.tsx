@@ -117,6 +117,9 @@ export default function AdminActorForm() {
       if (tags.length > 0) {
         promises.push(supabase.from('actor_tags').insert(tags.map(t => ({ ...t, actor_id: actorId }))));
       }
+      if (images.length > 0) {
+        promises.push(supabase.from('actor_images').insert(images.map((img, i) => ({ ...img, actor_id: actorId, sort_order: i }))));
+      }
 
       await Promise.all(promises);
       qc.invalidateQueries({ queryKey: ['actors'] });
