@@ -1,19 +1,21 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import type { Actor, ActorFull } from '@/types/actor';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import type { Actor, ActorFull } from "@/types/actor";
 
 export function useActors() {
   return useQuery({
-    queryKey: ['actors'],
+    queryKey: ["actors"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('actors')
-        .select('*, actor_images(image_url, sort_order)')
-        .order('created_at', { ascending: false });
+        .from("actors")
+        .select("*, actor_images(image_url, sort_order)")
+        .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data as any[]).map(a => ({
+      return (data as any[]).map((a) => ({
         ...a,
-        profile_image_url: a.profile_image_url || (a.actor_images?.sort((x: any, y: any) => x.sort_order - y.sort_order)[0]?.image_url ?? null),
+        profile_image_url:
+          a.profile_image_url ||
+          (a.actor_images?.sort((x: any, y: any) => x.sort_order - y.sort_order)[0]?.image_url ?? null),
         actor_images: undefined,
       })) as Actor[];
     },
@@ -22,24 +24,25 @@ export function useActors() {
 
 export function useActorBySlug(slug: string) {
   return useQuery({
-    queryKey: ['actor', slug],
+    queryKey: ["actor", slug],
     queryFn: async () => {
-      const { data: actor, error } = await supabase
-        .from('actors')
-        .select('*')
-        .eq('slug', slug)
-        .single();
+      const { data: actor, error } = await supabase.from("actors").select("*").eq("slug", slug).single();
       if (error) throw error;
 
       const [images, careers, insights, keywords, videos, awards, tags, editorials] = await Promise.all([
-        supabase.from('actor_images').select('*').eq('actor_id', actor.id).order('sort_order'),
-        supabase.from('careers').select('*, career_images(*)').eq('actor_id', actor.id).order('sort_order'),
-        supabase.from('insights').select('*').eq('actor_id', actor.id).maybeSingle(),
-        supabase.from('keywords').select('*').eq('actor_id', actor.id),
-        supabase.from('videos').select('*, video_links(*)').eq('actor_id', actor.id).order('sort_order'),
-        supabase.from('awards').select('*').eq('actor_id', actor.id),
-        supabase.from('actor_tags').select('*').eq('actor_id', actor.id),
-        supabase.from('editorials').select('*, editorial_media(*)').eq('actor_id', actor.id).order('sort_order'),
+        supabase.from("actor_images").select("*").eq("actor_id", actor.id).order("sort_order"),
+        // 수정됨: career_links(*) 추가
+        supabase
+          .from("careers")
+          .select("*, career_images(*), career_links(*)")
+          .eq("actor_id", actor.id)
+          .order("sort_order"),
+        supabase.from("insights").select("*").eq("actor_id", actor.id).maybeSingle(),
+        supabase.from("keywords").select("*").eq("actor_id", actor.id),
+        supabase.from("videos").select("*, video_links(*)").eq("actor_id", actor.id).order("sort_order"),
+        supabase.from("awards").select("*").eq("actor_id", actor.id),
+        supabase.from("actor_tags").select("*").eq("actor_id", actor.id),
+        supabase.from("editorials").select("*, editorial_media(*)").eq("actor_id", actor.id).order("sort_order"),
       ]);
 
       return {
@@ -60,24 +63,21 @@ export function useActorBySlug(slug: string) {
 
 export function useActorById(id: string) {
   return useQuery({
-    queryKey: ['actor-edit', id],
+    queryKey: ["actor-edit", id],
     queryFn: async () => {
-      const { data: actor, error } = await supabase
-        .from('actors')
-        .select('*')
-        .eq('id', id)
-        .single();
+      const { data: actor, error } = await supabase.from("actors").select("*").eq("id", id).single();
       if (error) throw error;
 
       const [images, careers, insights, keywords, videos, awards, tags, editorials] = await Promise.all([
-        supabase.from('actor_images').select('*').eq('actor_id', id).order('sort_order'),
-        supabase.from('careers').select('*, career_images(*)').eq('actor_id', id).order('sort_order'),
-        supabase.from('insights').select('*').eq('actor_id', id).maybeSingle(),
-        supabase.from('keywords').select('*').eq('actor_id', id),
-        supabase.from('videos').select('*, video_links(*)').eq('actor_id', id).order('sort_order'),
-        supabase.from('awards').select('*').eq('actor_id', id),
-        supabase.from('actor_tags').select('*').eq('actor_id', id),
-        supabase.from('editorials').select('*, editorial_media(*)').eq('actor_id', id).order('sort_order'),
+        supabase.from("actor_images").select("*").eq("actor_id", id).order("sort_order"),
+        // 수정됨: career_links(*) 추가
+        supabase.from("careers").select("*, career_images(*), career_links(*)").eq("actor_id", id).order("sort_order"),
+        supabase.from("insights").select("*").eq("actor_id", id).maybeSingle(),
+        supabase.from("keywords").select("*").eq("actor_id", id),
+        supabase.from("videos").select("*, video_links(*)").eq("actor_id", id).order("sort_order"),
+        supabase.from("awards").select("*").eq("actor_id", id),
+        supabase.from("actor_tags").select("*").eq("actor_id", id),
+        supabase.from("editorials").select("*, editorial_media(*)").eq("actor_id", id).order("sort_order"),
       ]);
 
       return {
@@ -92,7 +92,7 @@ export function useActorById(id: string) {
         editorials: editorials.data || [],
       } as ActorFull;
     },
-    enabled: !!id && id !== 'new',
+    enabled: !!id && id !== "new",
   });
 }
 
@@ -100,10 +100,10 @@ export function useDeleteActor() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('actors').delete().eq('id', id);
+      const { error } = await supabase.from("actors").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['actors'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["actors"] }),
   });
 }
 

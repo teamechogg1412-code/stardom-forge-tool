@@ -15,6 +15,8 @@ export interface Actor {
   height: string | null;
   language: string | null;
   brand_keyword: string | null;
+  bio_headline: string | null; // 추가
+  bio_text: string | null;
   created_at: string;
 }
 
@@ -36,12 +38,14 @@ export interface Career {
   id: string;
   actor_id: string;
   category: string;
+  sub_category: string | null;
   year_label: string;
   title: string;
   description: string | null;
   youtube_url: string | null;
   sort_order: number;
   career_images: CareerImage[];
+  career_links?: CareerLink[];
 }
 
 export interface Insight {
@@ -56,6 +60,14 @@ export interface Insight {
   age_30s: number | null;
   age_40s: number | null;
   core_age_description: string | null;
+}
+
+export interface CareerLink {
+  id: string;
+  career_id: string;
+  link_url: string;
+  link_label: string;
+  sort_order: number;
 }
 
 export interface Keyword {
@@ -90,6 +102,7 @@ export interface Award {
   year_label: string | null;
   tag_style: string;
   show_on_profile: boolean;
+  youtube_url?: string | null; // 이 줄을 추가하세요
 }
 
 export interface Editorial {
@@ -105,7 +118,7 @@ export interface EditorialMedia {
   id: string;
   editorial_id: string;
   media_url: string;
-  media_type: 'image' | 'video';
+  media_type: "image" | "video";
   sort_order: number;
 }
 
