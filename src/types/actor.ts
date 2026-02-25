@@ -89,6 +89,7 @@ export interface Award {
   title: string;
   year_label: string | null;
   tag_style: string;
+  show_on_profile: boolean;
 }
 
 export interface Editorial {
