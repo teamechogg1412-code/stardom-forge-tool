@@ -29,7 +29,7 @@ export function useActorBySlug(slug: string) {
 
       const [images, careers, insights, keywords, videos, awards, tags, editorials] = await Promise.all([
         supabase.from('actor_images').select('*').eq('actor_id', actor.id).order('sort_order'),
-        supabase.from('careers').select('*').eq('actor_id', actor.id).order('sort_order'),
+        supabase.from('careers').select('*, career_images(*)').eq('actor_id', actor.id).order('sort_order'),
         supabase.from('insights').select('*').eq('actor_id', actor.id).maybeSingle(),
         supabase.from('keywords').select('*').eq('actor_id', actor.id),
         supabase.from('videos').select('*, video_links(*)').eq('actor_id', actor.id).order('sort_order'),
@@ -67,7 +67,7 @@ export function useActorById(id: string) {
 
       const [images, careers, insights, keywords, videos, awards, tags, editorials] = await Promise.all([
         supabase.from('actor_images').select('*').eq('actor_id', id).order('sort_order'),
-        supabase.from('careers').select('*').eq('actor_id', id).order('sort_order'),
+        supabase.from('careers').select('*, career_images(*)').eq('actor_id', id).order('sort_order'),
         supabase.from('insights').select('*').eq('actor_id', id).maybeSingle(),
         supabase.from('keywords').select('*').eq('actor_id', id),
         supabase.from('videos').select('*, video_links(*)').eq('actor_id', id).order('sort_order'),

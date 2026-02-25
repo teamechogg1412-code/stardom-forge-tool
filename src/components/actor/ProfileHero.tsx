@@ -79,12 +79,20 @@ export default function ProfileHero({ actor }: { actor: ActorFull }) {
           ) : null)}
         </div>
 
-        {actor.instagram_id && (
-          <a href={`https://instagram.com/${actor.instagram_id}`} target="_blank" rel="noopener noreferrer"
-            className="inline-block mt-2 text-sm font-bold text-primary hover:underline tracking-wider uppercase">
-            Go to Official Instagram →
-          </a>
-        )}
+        <div className="flex flex-wrap gap-3 mt-2">
+          {actor.instagram_id && (
+            <a href={`https://instagram.com/${actor.instagram_id}`} target="_blank" rel="noopener noreferrer"
+              className="text-sm font-bold text-primary hover:underline tracking-wider uppercase">
+              Instagram →
+            </a>
+          )}
+          {actor.homepage_url && (
+            <a href={actor.homepage_url} target="_blank" rel="noopener noreferrer"
+              className="text-sm font-bold text-primary hover:underline tracking-wider uppercase">
+              Official Site →
+            </a>
+          )}
+        </div>
       </div>
     </section>
   );
