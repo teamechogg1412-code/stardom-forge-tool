@@ -1,273 +1,180 @@
-import React from "react";
-import SectionWrapper from "../SectionWrapper";
-import DraggableList from "../DraggableList";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import type { Career, CareerImage } from '@/types/actor';
+import { getYouTubeId } from '@/hooks/useActorData';
+import StillcutModal from './StillcutModal';
+import CareerVideoModal from './CareerVideoModal';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-export default function CareerSection({ careers, setCareers }: any) {
-  // 개별 항목 업데이트 함수
-  const updateItem = (originalIndex: number, updates: any) => {
-    const newCareers = [...careers];
-    newCareers[originalIndex] = { ...newCareers[originalIndex], ...updates };
-    setCareers(newCareers);
-  };
+export default function CareerPortfolio({ careers }: { careers: Career[] }) {
+  const ITEMS_PER_PAGE = 12; // 한 페이지에 12개 (왼쪽 6개, 오른쪽 6개)
 
-  // 개별 항목 삭제 함수
-  const removeItem = (originalIndex: number) => {
-    setCareers(careers.filter((_: any, j: number) => j !== originalIndex));
-  };
+  const [dramaPage, setDramaPage] = useState(0);
+  const [brandPage, setBrandPage] = useState(0);
+  const [modalImages, setModalImages] = useState<CareerImage[] | null>(null);
+  const [activeVideoSet, setActiveVideoSet] = useState<{links: any[], index: number} | null>(null);
 
-  // 특정 카테고리의 아이템들만 렌더링하는 헬퍼 함수
-  const renderCareerList = (categoryFilter: string) => {
-    // 필터링된 리스트 생성 (원본 인덱스를 유지해야 함)
-    const filteredItems = careers
-      .map((item: any, index: number) => ({ ...item, originalIndex: index }))
-      .filter((item: any) => item.category === categoryFilter);
+  // 데이터 정렬 (최신순)
+  const sortedCareers = [...careers].sort((a, b) => b.year_label.localeCompare(a.year_label));
+  const dramaFilm = sortedCareers.filter(c => c.category === 'drama_film');
+  const brandEtc = sortedCareers.filter(c => c.category === 'brand_editorial');
 
-    if (filteredItems.length === 0) {
-      return (
-        <div className="py-20 text-center border-2 border-dashed border-slate-200 rounded-xl bg-white">
-          <p className="text-slate-400 font-bold">이 카테고리에 등록된 항목이 없습니다.</p>
-          <Button
-            variant="outline"
-            size="sm"
-            className="mt-4"
-            onClick={() =>
-              setCareers([
-                ...careers,
-                {
-                  category: categoryFilter,
-                  sub_category: "",
-                  year_label: "",
-                  title: "",
-                  description: "",
-                  role_image_url: "",
-                  links: [],
-                  images: [],
-                },
-              ])
-            }
-          >
-            + 첫 항목 추가하기
-          </Button>
-        </div>
-      );
+  if (careers.length === 0) return null;
+
+  const getSubCategoryStyle = (subCat: string | null) => {
+    const cat = subCat?.toLowerCase() || '';
+    switch (cat) {
+      case 'drama': return 'bg-blue-700 text-white';
+      case 'movie': return 'bg-black text-white';
+      case 'mv': return 'bg-violet-600 text-white';
+      case 'cf': return 'bg-amber-500 text-white';
+      case 'editorial': return 'bg-teal-600 text-white';
+      default: return 'bg-slate-400 text-white';
     }
+  };
+
+  const renderIcons = (c: Career) => {
+    const hasImages = c.career_images && c.career_images.length > 0;
+    const isBrand = c.category === 'brand_editorial';
+    const youtubeLinks = ((c as any).career_links || []).filter((l: any) => getYouTubeId(l.link_url));
 
     return (
-      <DraggableList
-        items={filteredItems}
-        droppableId={`careers-${categoryFilter}`}
-        onReorder={(reorderedFilteredItems: any) => {
-          // 순서 재배치 로직:
-          // 1. 다른 카테고리 아이템들은 그대로 둠
-          // 2. 현재 카테고리 아이템들만 새로운 순서로 교체
-          const otherCategoryItems = careers.filter((c: any) => c.category !== categoryFilter);
-          const newOrder = [
-            ...otherCategoryItems,
-            ...reorderedFilteredItems.map(({ originalIndex, ...rest }: any) => rest),
-          ];
-          // 사실 원본 배열에서의 전체 순서가 중요하다면 좀 더 복잡한 매핑이 필요하지만,
-          // 보통 카테고리 내에서의 순서만 보장되면 되므로 합쳐줍니다.
-          setCareers(newOrder);
-        }}
-        renderItem={(c: any) => {
-          const i = c.originalIndex; // 원본 배열의 인덱스
-          return (
-            <div className="mb-6 p-6 border-2 border-slate-200 rounded-xl bg-white shadow-sm transition-all hover:border-primary/30">
-              <div className="flex flex-wrap gap-3 items-start mb-5">
-                <div className="bg-primary text-white px-3 py-1.5 rounded font-black text-[10px] uppercase">
-                  {categoryFilter === "drama_film" ? "DRAMA & FILM" : "BRAND & ETC"}
-                </div>
-                <select
-                  value={c.sub_category}
-                  onChange={(e) => updateItem(i, { sub_category: e.target.value })}
-                  className="border-2 border-slate-200 rounded-md px-2 py-2 text-xs font-black bg-slate-50 focus:border-primary outline-none"
-                >
-                  <option value="">구분 선택</option>
-                  <option value="Drama">Drama</option>
-                  <option value="Movie">Movie</option>
-                  <option value="Editorial">Editorial</option>
-                  <option value="MV">MV</option>
-                  <option value="CF">CF</option>
-                  <option value="etc">etc</option>
-                </select>
-                <Input
-                  placeholder="연도"
-                  value={c.year_label}
-                  onChange={(e) => updateItem(i, { year_label: e.target.value })}
-                  className="w-20 font-bold"
-                />
-                <Input
-                  placeholder="작품명/활동명"
-                  value={c.title}
-                  onChange={(e) => updateItem(i, { title: e.target.value })}
-                  className="flex-1 font-black"
-                />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeItem(i)}
-                  className="text-destructive hover:bg-destructive/10"
-                >
-                  ✕
-                </Button>
-              </div>
+      <span className="inline-flex gap-1.5 ml-2 align-middle">
+        {!isBrand && (
+          <a href={`https://search.naver.com/search.naver?query=${encodeURIComponent(c.title)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center w-5 h-5 rounded bg-[#03C75A] text-[10px] font-black text-white hover:opacity-80 transition-opacity leading-none shadow-sm">N</a>
+        )}
+        {hasImages && (
+          <button onClick={(e) => { e.stopPropagation(); setModalImages(c.career_images); }} className="inline-flex items-center justify-center w-5 h-5 rounded bg-slate-200 text-[12px] hover:bg-slate-300 transition-colors cursor-pointer leading-none shadow-sm">📸</button>
+        )}
+        {youtubeLinks.length > 0 && (
+          <button onClick={(e) => { e.stopPropagation(); setActiveVideoSet({ links: youtubeLinks, index: 0 }); }} className="inline-flex items-center justify-center w-5 h-5 rounded bg-[#FF0000] text-[10px] text-white hover:opacity-80 transition-opacity leading-none shadow-sm">▶</button>
+        )}
+      </span>
+    );
+  };
 
-              <div className="pl-4 space-y-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label className="text-[10px] font-black uppercase text-muted-foreground block mb-1">
-                      배역명 (Description)
-                    </Label>
-                    <Input
-                      placeholder="예: 김건 역"
-                      value={c.description}
-                      onChange={(e) => updateItem(i, { description: e.target.value })}
-                      className="text-sm font-bold"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-[10px] font-black uppercase text-primary block mb-1">
-                      배역 프로필 이미지 URL (호버 미리보기용)
-                    </Label>
-                    <Input
-                      placeholder="이미지 URL"
-                      value={c.role_image_url}
-                      onChange={(e) => updateItem(i, { role_image_url: e.target.value })}
-                      className="text-sm border-primary/20"
-                    />
-                  </div>
-                </div>
+  // 개별 아이템 렌더링 (연도 표시 로직 포함)
+  const renderItem = (c: Career, index: number, allItemsInPage: Career[]) => {
+    const cleanDescription = c.description?.replace(/\[.*?\]/, '').trim();
+    const roleImage = (c as any).role_image_url;
+    
+    // 페이지 내에서의 인덱스가 아닌, 전체 리스트에서의 인덱스를 찾아 연도 중복 체크
+    const globalIndex = careers.findIndex(item => item.id === c.id);
+    const isFirstInYear = globalIndex === 0 || c.year_label !== careers[globalIndex - 1].year_label;
 
-                <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 space-y-3">
-                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider text-left">
-                    영상 및 외부 링크 관리
-                  </p>
-                  {c.links.map((link: any, li: number) => (
-                    <div key={li} className="flex gap-2">
-                      <Input
-                        placeholder="라벨 (예: 예고편)"
-                        value={link.link_label}
-                        onChange={(e) => {
-                          const newLinks = [...c.links];
-                          newLinks[li].link_label = e.target.value;
-                          updateItem(i, { links: newLinks });
-                        }}
-                        className="w-32 text-xs h-9 bg-white"
-                      />
-                      <Input
-                        placeholder="URL"
-                        value={link.link_url}
-                        onChange={(e) => {
-                          const newLinks = [...c.links];
-                          newLinks[li].link_url = e.target.value;
-                          updateItem(i, { links: newLinks });
-                        }}
-                        className="flex-1 text-xs h-9 bg-white"
-                      />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          const newLinks = c.links.filter((_: any, j: number) => j !== li);
-                          updateItem(i, { links: newLinks });
-                        }}
-                      >
-                        ✕
-                      </Button>
-                    </div>
-                  ))}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const newLinks = [...c.links, { link_url: "", link_label: "" }];
-                      updateItem(i, { links: newLinks });
-                    }}
-                    className="text-[10px] font-bold bg-white"
-                  >
-                    + 링크 추가
-                  </Button>
-                </div>
-              </div>
+    return (
+      <div key={c.id} className="flex gap-6 items-start group relative border-b border-slate-100 pb-7 last:border-0">
+        <div className="w-[50px] shrink-0 pt-1">
+          {isFirstInYear ? (
+            <span className="text-sm font-black text-primary tabular-nums">{c.year_label}</span>
+          ) : (
+            <span className="opacity-0 text-sm font-black select-none">{c.year_label}</span>
+          )}
+        </div>
+        
+        <div className="flex items-start gap-3 flex-1 min-w-0">
+          {c.sub_category && (
+            <span className={`shrink-0 mt-1 px-2 py-0.5 text-[8px] font-black rounded-[2px] uppercase tracking-wider shadow-sm ${getSubCategoryStyle(c.sub_category)}`}>
+              {c.sub_category}
+            </span>
+          )}
+          <div className="flex flex-col relative flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-base font-extrabold leading-tight text-slate-900 group-hover:text-primary transition-colors truncate">{c.title}</span>
+              <div className="shrink-0 scale-90 origin-left">{renderIcons(c)}</div>
             </div>
-          );
-        }}
-      />
+            {cleanDescription && <span className="block text-xs text-slate-500 font-bold mt-1.5 tracking-tight truncate group-hover:text-slate-800 transition-colors">{cleanDescription}</span>}
+
+            {roleImage && (
+              <div className="absolute left-[220px] -top-12 z-[100] opacity-0 scale-95 translate-x-1 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-0 pointer-events-none transition-all duration-300 ease-out hidden xl:block">
+                <div className="relative w-40 aspect-[3/4] rounded-xl overflow-hidden border-[5px] border-white shadow-[0_20px_50px_rgba(0,0,0,0.3)] bg-slate-100">
+                  <img src={roleImage} alt={c.title} className="w-full h-full object-cover" />
+                  <div className="absolute bottom-0 w-full p-3 bg-gradient-to-t from-black/90 via-black/20 to-transparent text-left">
+                    <p className="text-[11px] text-white/80 font-black leading-tight uppercase">{c.sub_category}</p>
+                    <p className="text-[13px] text-white font-extrabold leading-tight mt-0.5">{c.title}</p>
+                    <p className="text-[10px] text-white/70 font-bold mt-1">{cleanDescription}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // 페이지 기반 렌더링 로직 (왼쪽 채우고 오른쪽 채우기)
+  const renderPaginatedContent = (items: Career[], currentPage: number, setCurrentPage: (p: number) => void) => {
+    const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
+    const startIndex = currentPage * ITEMS_PER_PAGE;
+    const pageItems = items.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    
+    // 왼쪽 6개, 오른쪽 6개로 분할
+    const leftColItems = pageItems.slice(0, 6);
+    const rightColItems = pageItems.slice(6, 12);
+
+    return (
+      <div className="flex flex-col gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-16 gap-y-0 mt-8 min-h-[550px]">
+          <div className="space-y-8">{leftColItems.map((c, i) => renderItem(c, i, pageItems))}</div>
+          <div className="space-y-8">{rightColItems.map((c, i) => renderItem(c, i + 6, pageItems))}</div>
+        </div>
+        
+        {/* 페이지네이션 컨트롤 */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-6 mt-4">
+            <button 
+              onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+              disabled={currentPage === 0}
+              className="w-10 h-10 rounded-full border-2 border-slate-200 flex items-center justify-center hover:border-primary hover:text-primary disabled:opacity-30 disabled:hover:border-slate-200 disabled:hover:text-current transition-all"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <span className="text-xs font-black tracking-widest text-slate-400 uppercase">
+              Page {currentPage + 1} <span className="mx-2 text-slate-200">/</span> {totalPages}
+            </span>
+            <button 
+              onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+              disabled={currentPage === totalPages - 1}
+              className="w-10 h-10 rounded-full border-2 border-slate-200 flex items-center justify-center hover:border-primary hover:text-primary disabled:opacity-30 disabled:hover:border-slate-200 disabled:hover:text-current transition-all"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
+        )}
+      </div>
     );
   };
 
   return (
-    <SectionWrapper title="커리어 포트폴리오 관리">
-      <Tabs defaultValue="drama_film" className="w-full">
-        <TabsList className="mb-6 bg-slate-100 p-1">
-          <TabsTrigger
-            value="drama_film"
-            className="flex-1 font-bold text-xs data-[state=active]:bg-white data-[state=active]:text-primary"
-          >
-            DRAMA & FILM ({careers.filter((c: any) => c.category === "drama_film").length})
-          </TabsTrigger>
-          <TabsTrigger
-            value="brand_editorial"
-            className="flex-1 font-bold text-xs data-[state=active]:bg-white data-[state=active]:text-primary"
-          >
-            BRAND & EDITORIAL ({careers.filter((c: any) => c.category === "brand_editorial").length})
-          </TabsTrigger>
-        </TabsList>
+    <>
+      <section className="py-24 px-[8%] border-b border-border bg-white overflow-visible">
+        <h2 className="text-3xl font-black text-center tracking-[4px] uppercase text-primary mb-16">Career Portfolio</h2>
+        <div className="max-w-[1400px] mx-auto">
+          <Tabs defaultValue="drama" className="w-full">
+            <TabsList className="flex justify-center bg-transparent gap-4 mb-8">
+              <TabsTrigger value="drama" className="px-10 py-3.5 rounded-full text-sm font-black uppercase tracking-widest border-2 border-slate-100 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:border-primary transition-all shadow-sm">
+                Drama & Film ({dramaFilm.length})
+              </TabsTrigger>
+              <TabsTrigger value="brand" className="px-10 py-3.5 rounded-full text-sm font-black uppercase tracking-widest border-2 border-slate-100 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:border-primary transition-all shadow-sm">
+                Brand & Etc ({brandEtc.length})
+              </TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="drama_film" className="focus-visible:outline-none">
-          {renderCareerList("drama_film")}
-          <Button
-            variant="outline"
-            className="w-full mt-4 py-6 border-dashed border-2 font-black text-slate-400 hover:text-primary hover:bg-primary/5 transition-all"
-            onClick={() =>
-              setCareers([
-                ...careers,
-                {
-                  category: "drama_film",
-                  sub_category: "",
-                  year_label: "",
-                  title: "",
-                  description: "",
-                  role_image_url: "",
-                  links: [],
-                  images: [],
-                },
-              ])
-            }
-          >
-            + 새로운 작품(Drama/Film) 추가
-          </Button>
-        </TabsContent>
+            <TabsContent value="drama" className="mt-0 outline-none">
+              {renderPaginatedContent(dramaFilm, dramaPage, setDramaPage)}
+            </TabsContent>
+            <TabsContent value="brand" className="mt-0 outline-none">
+              {renderPaginatedContent(brandEtc, brandPage, setBrandPage)}
+            </TabsContent>
+          </Tabs>
+        </div>
+      </section>
 
-        <TabsContent value="brand_editorial" className="focus-visible:outline-none">
-          {renderCareerList("brand_editorial")}
-          <Button
-            variant="outline"
-            className="w-full mt-4 py-6 border-dashed border-2 font-black text-slate-400 hover:text-primary hover:bg-primary/5 transition-all"
-            onClick={() =>
-              setCareers([
-                ...careers,
-                {
-                  category: "brand_editorial",
-                  sub_category: "",
-                  year_label: "",
-                  title: "",
-                  description: "",
-                  role_image_url: "",
-                  links: [],
-                  images: [],
-                },
-              ])
-            }
-          >
-            + 새로운 광고/화보(Brand/Editorial) 추가
-          </Button>
-        </TabsContent>
-      </Tabs>
-    </SectionWrapper>
+      {modalImages && <StillcutModal images={modalImages} onClose={() => setModalImages(null)} />}
+      {activeVideoSet && (
+        <CareerVideoModal links={activeVideoSet.links} initialIndex={activeVideoSet.index} onClose={() => setActiveVideoSet(null)} />
+      )}
+    </>
   );
 }
