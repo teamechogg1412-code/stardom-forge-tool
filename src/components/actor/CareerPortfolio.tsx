@@ -1,117 +1,273 @@
-import { useState } from 'react';
-import type { Career, CareerImage } from '@/types/actor';
-import { getYouTubeId } from '@/hooks/useActorData';
-import StillcutModal from './StillcutModal';
+import React from "react";
+import SectionWrapper from "../SectionWrapper";
+import DraggableList from "../DraggableList";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export default function CareerPortfolio({ careers }: { careers: Career[] }) {
-  const dramaFilm = careers.filter(c => c.category === 'drama_film');
-  const brandEditorial = careers.filter(c => c.category === 'brand_editorial');
-  const [modalImages, setModalImages] = useState<CareerImage[] | null>(null);
+export default function CareerSection({ careers, setCareers }: any) {
+  // 개별 항목 업데이트 함수
+  const updateItem = (originalIndex: number, updates: any) => {
+    const newCareers = [...careers];
+    newCareers[originalIndex] = { ...newCareers[originalIndex], ...updates };
+    setCareers(newCareers);
+  };
 
-  if (dramaFilm.length === 0 && brandEditorial.length === 0) return null;
+  // 개별 항목 삭제 함수
+  const removeItem = (originalIndex: number) => {
+    setCareers(careers.filter((_: any, j: number) => j !== originalIndex));
+  };
 
-  const naverSearchUrl = (title: string) =>
-    `https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=0&ie=utf8&query=${encodeURIComponent(title)}`;
+  // 특정 카테고리의 아이템들만 렌더링하는 헬퍼 함수
+  const renderCareerList = (categoryFilter: string) => {
+    // 필터링된 리스트 생성 (원본 인덱스를 유지해야 함)
+    const filteredItems = careers
+      .map((item: any, index: number) => ({ ...item, originalIndex: index }))
+      .filter((item: any) => item.category === categoryFilter);
 
-  const renderIcons = (c: Career) => {
-    const hasImages = c.career_images && c.career_images.length > 0;
-    const isBrand = c.category === 'brand_editorial';
-    const links = (c as any).career_links || [];
+    if (filteredItems.length === 0) {
+      return (
+        <div className="py-20 text-center border-2 border-dashed border-slate-200 rounded-xl bg-white">
+          <p className="text-slate-400 font-bold">이 카테고리에 등록된 항목이 없습니다.</p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-4"
+            onClick={() =>
+              setCareers([
+                ...careers,
+                {
+                  category: categoryFilter,
+                  sub_category: "",
+                  year_label: "",
+                  title: "",
+                  description: "",
+                  role_image_url: "",
+                  links: [],
+                  images: [],
+                },
+              ])
+            }
+          >
+            + 첫 항목 추가하기
+          </Button>
+        </div>
+      );
+    }
 
     return (
-      <span className="inline-flex gap-1.5 ml-2 align-middle">
-        {!isBrand && (
-          <a href={naverSearchUrl(c.title)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center w-5 h-5 rounded bg-[#03C75A] text-[10px] font-black text-white hover:opacity-80 transition-opacity leading-none">N</a>
-        )}
-        {hasImages && (
-          <button onClick={(e) => { e.stopPropagation(); setModalImages(c.career_images); }} className="inline-flex items-center justify-center w-5 h-5 rounded bg-slate-200 text-[12px] hover:bg-slate-300 transition-colors cursor-pointer leading-none">📸</button>
-        )}
-        {links.map((link: any) => {
-          const ytId = getYouTubeId(link.link_url);
+      <DraggableList
+        items={filteredItems}
+        droppableId={`careers-${categoryFilter}`}
+        onReorder={(reorderedFilteredItems: any) => {
+          // 순서 재배치 로직:
+          // 1. 다른 카테고리 아이템들은 그대로 둠
+          // 2. 현재 카테고리 아이템들만 새로운 순서로 교체
+          const otherCategoryItems = careers.filter((c: any) => c.category !== categoryFilter);
+          const newOrder = [
+            ...otherCategoryItems,
+            ...reorderedFilteredItems.map(({ originalIndex, ...rest }: any) => rest),
+          ];
+          // 사실 원본 배열에서의 전체 순서가 중요하다면 좀 더 복잡한 매핑이 필요하지만,
+          // 보통 카테고리 내에서의 순서만 보장되면 되므로 합쳐줍니다.
+          setCareers(newOrder);
+        }}
+        renderItem={(c: any) => {
+          const i = c.originalIndex; // 원본 배열의 인덱스
           return (
-            <a key={link.id} href={link.link_url} target="_blank" rel="noopener noreferrer" className={`inline-flex items-center justify-center w-5 h-5 rounded ${ytId ? 'bg-[#FF0000]' : 'bg-slate-800'} text-[10px] text-white hover:opacity-80 transition-opacity leading-none`}>
-              {ytId ? '▶' : 'L'}
-            </a>
+            <div className="mb-6 p-6 border-2 border-slate-200 rounded-xl bg-white shadow-sm transition-all hover:border-primary/30">
+              <div className="flex flex-wrap gap-3 items-start mb-5">
+                <div className="bg-primary text-white px-3 py-1.5 rounded font-black text-[10px] uppercase">
+                  {categoryFilter === "drama_film" ? "DRAMA & FILM" : "BRAND & ETC"}
+                </div>
+                <select
+                  value={c.sub_category}
+                  onChange={(e) => updateItem(i, { sub_category: e.target.value })}
+                  className="border-2 border-slate-200 rounded-md px-2 py-2 text-xs font-black bg-slate-50 focus:border-primary outline-none"
+                >
+                  <option value="">구분 선택</option>
+                  <option value="Drama">Drama</option>
+                  <option value="Movie">Movie</option>
+                  <option value="Editorial">Editorial</option>
+                  <option value="MV">MV</option>
+                  <option value="CF">CF</option>
+                  <option value="etc">etc</option>
+                </select>
+                <Input
+                  placeholder="연도"
+                  value={c.year_label}
+                  onChange={(e) => updateItem(i, { year_label: e.target.value })}
+                  className="w-20 font-bold"
+                />
+                <Input
+                  placeholder="작품명/활동명"
+                  value={c.title}
+                  onChange={(e) => updateItem(i, { title: e.target.value })}
+                  className="flex-1 font-black"
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeItem(i)}
+                  className="text-destructive hover:bg-destructive/10"
+                >
+                  ✕
+                </Button>
+              </div>
+
+              <div className="pl-4 space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground block mb-1">
+                      배역명 (Description)
+                    </Label>
+                    <Input
+                      placeholder="예: 김건 역"
+                      value={c.description}
+                      onChange={(e) => updateItem(i, { description: e.target.value })}
+                      className="text-sm font-bold"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] font-black uppercase text-primary block mb-1">
+                      배역 프로필 이미지 URL (호버 미리보기용)
+                    </Label>
+                    <Input
+                      placeholder="이미지 URL"
+                      value={c.role_image_url}
+                      onChange={(e) => updateItem(i, { role_image_url: e.target.value })}
+                      className="text-sm border-primary/20"
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 space-y-3">
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider text-left">
+                    영상 및 외부 링크 관리
+                  </p>
+                  {c.links.map((link: any, li: number) => (
+                    <div key={li} className="flex gap-2">
+                      <Input
+                        placeholder="라벨 (예: 예고편)"
+                        value={link.link_label}
+                        onChange={(e) => {
+                          const newLinks = [...c.links];
+                          newLinks[li].link_label = e.target.value;
+                          updateItem(i, { links: newLinks });
+                        }}
+                        className="w-32 text-xs h-9 bg-white"
+                      />
+                      <Input
+                        placeholder="URL"
+                        value={link.link_url}
+                        onChange={(e) => {
+                          const newLinks = [...c.links];
+                          newLinks[li].link_url = e.target.value;
+                          updateItem(i, { links: newLinks });
+                        }}
+                        className="flex-1 text-xs h-9 bg-white"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const newLinks = c.links.filter((_: any, j: number) => j !== li);
+                          updateItem(i, { links: newLinks });
+                        }}
+                      >
+                        ✕
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newLinks = [...c.links, { link_url: "", link_label: "" }];
+                      updateItem(i, { links: newLinks });
+                    }}
+                    className="text-[10px] font-bold bg-white"
+                  >
+                    + 링크 추가
+                  </Button>
+                </div>
+              </div>
+            </div>
           );
-        })}
-      </span>
+        }}
+      />
     );
   };
 
-  const renderList = (items: Career[], title: string) => (
-    <div className="flex-1">
-      <h3 className="text-xl font-black text-primary mb-10 pb-4 border-b-4 border-primary tracking-wide uppercase">{title}</h3>
-      <ul className="space-y-10">
-        {items.map(c => {
-          const cleanDescription = c.description?.replace(/\[.*?\]/, '').trim();
-          const roleImage = (c as any).role_image_url; // DB에서 가져온 배역 이미지
-
-          return (
-            <li key={c.id} className="flex gap-7 items-start group relative">
-              {/* 연도 */}
-              <span className="w-[60px] shrink-0 text-base font-black text-slate-400 tabular-nums group-hover:text-primary transition-colors pt-1">
-                {c.year_label}
-              </span>
-              
-              <div className="flex items-start gap-3 flex-1">
-                {/* [서브 카테고리 배지] */}
-                {c.sub_category && (
-                  <span className="shrink-0 mt-1 px-2 py-0.5 text-[9px] font-black bg-slate-900 text-white rounded-[2px] uppercase tracking-wider shadow-sm">
-                    {c.sub_category}
-                  </span>
-                )}
-
-                {/* 텍스트 영역 */}
-                <div className="flex flex-col relative flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg font-extrabold leading-tight text-slate-900 group-hover:text-primary transition-colors">
-                      {c.title}
-                    </span>
-                    <div className="inline-flex items-center scale-90 origin-left">
-                      {renderIcons(c)}
-                    </div>
-                  </div>
-
-                  {/* 배역명 (작품명 바로 아래) */}
-                  {cleanDescription && (
-                    <span className="block text-sm text-slate-500 font-bold mt-1.5 tracking-tight group-hover:text-slate-800 transition-colors">
-                      {cleanDescription}
-                    </span>
-                  )}
-
-                  {/* ⭐ 배역 이미지 호버 미리보기 ⭐ */}
-                  {roleImage && (
-                    <div className="absolute left-0 top-[110%] z-[100] opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 pointer-events-none transition-all duration-300 ease-out">
-                      <div className="relative w-44 aspect-[3/4] rounded-xl overflow-hidden border-[6px] border-white shadow-[0_20px_50px_rgba(0,0,0,0.3)] bg-slate-100">
-                        <img src={roleImage} alt={c.title} className="w-full h-full object-cover" />
-                        <div className="absolute bottom-0 w-full p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
-                          <p className="text-[11px] text-white font-black leading-tight uppercase">{c.sub_category}</p>
-                          <p className="text-[13px] text-white font-extrabold leading-tight mt-0.5">{c.title}</p>
-                          <p className="text-[10px] text-white/70 font-bold mt-1">{cleanDescription}</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  );
-
   return (
-    <>
-      <section className="py-24 px-[8%] border-b border-border bg-white overflow-visible">
-        <h2 className="text-3xl font-black text-center tracking-[4px] uppercase text-primary mb-20">Career Portfolio</h2>
-        <div className="flex flex-col lg:flex-row gap-16 lg:gap-24 max-w-[1800px] mx-auto">
-          {renderList(dramaFilm, 'Drama & Film')}
-          {renderList(brandEditorial, 'Brand & Editorial / Etc')}
-        </div>
-      </section>
+    <SectionWrapper title="커리어 포트폴리오 관리">
+      <Tabs defaultValue="drama_film" className="w-full">
+        <TabsList className="mb-6 bg-slate-100 p-1">
+          <TabsTrigger
+            value="drama_film"
+            className="flex-1 font-bold text-xs data-[state=active]:bg-white data-[state=active]:text-primary"
+          >
+            DRAMA & FILM ({careers.filter((c: any) => c.category === "drama_film").length})
+          </TabsTrigger>
+          <TabsTrigger
+            value="brand_editorial"
+            className="flex-1 font-bold text-xs data-[state=active]:bg-white data-[state=active]:text-primary"
+          >
+            BRAND & EDITORIAL ({careers.filter((c: any) => c.category === "brand_editorial").length})
+          </TabsTrigger>
+        </TabsList>
 
-      {modalImages && <StillcutModal images={modalImages} onClose={() => setModalImages(null)} />}
-    </>
+        <TabsContent value="drama_film" className="focus-visible:outline-none">
+          {renderCareerList("drama_film")}
+          <Button
+            variant="outline"
+            className="w-full mt-4 py-6 border-dashed border-2 font-black text-slate-400 hover:text-primary hover:bg-primary/5 transition-all"
+            onClick={() =>
+              setCareers([
+                ...careers,
+                {
+                  category: "drama_film",
+                  sub_category: "",
+                  year_label: "",
+                  title: "",
+                  description: "",
+                  role_image_url: "",
+                  links: [],
+                  images: [],
+                },
+              ])
+            }
+          >
+            + 새로운 작품(Drama/Film) 추가
+          </Button>
+        </TabsContent>
+
+        <TabsContent value="brand_editorial" className="focus-visible:outline-none">
+          {renderCareerList("brand_editorial")}
+          <Button
+            variant="outline"
+            className="w-full mt-4 py-6 border-dashed border-2 font-black text-slate-400 hover:text-primary hover:bg-primary/5 transition-all"
+            onClick={() =>
+              setCareers([
+                ...careers,
+                {
+                  category: "brand_editorial",
+                  sub_category: "",
+                  year_label: "",
+                  title: "",
+                  description: "",
+                  role_image_url: "",
+                  links: [],
+                  images: [],
+                },
+              ])
+            }
+          >
+            + 새로운 광고/화보(Brand/Editorial) 추가
+          </Button>
+        </TabsContent>
+      </Tabs>
+    </SectionWrapper>
   );
 }
