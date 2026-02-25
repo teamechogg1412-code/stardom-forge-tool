@@ -9,7 +9,8 @@ import { toast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import DraggableList from '@/components/admin/DraggableList';
 
-type CareerItem = { category: string; year_label: string; title: string; description: string };
+type CareerImageItem = { image_url: string };
+type CareerItem = { category: string; year_label: string; title: string; description: string; youtube_url: string; images: CareerImageItem[] };
 type KeywordItem = { keyword: string; size_class: string };
 type VideoLink = { youtube_url: string; link_label: string };
 type VideoItem = { category: string; project_name: string; year_label: string; links: VideoLink[] };
@@ -28,6 +29,7 @@ export default function AdminActorForm() {
 
   const [form, setForm] = useState({
     name_ko: '', name_en: '', slug: '', profile_image_url: '', instagram_id: '',
+    homepage_url: '', namuwiki_url: '',
     followers: '', posts: '', following: '', avg_likes: '', avg_comments: '',
     height: '', language: '', brand_keyword: '',
   });
@@ -47,11 +49,12 @@ export default function AdminActorForm() {
     setForm({
       name_ko: existingActor.name_ko || '', name_en: existingActor.name_en || '', slug: existingActor.slug || '',
       profile_image_url: existingActor.profile_image_url || '', instagram_id: existingActor.instagram_id || '',
+      homepage_url: (existingActor as any).homepage_url || '', namuwiki_url: (existingActor as any).namuwiki_url || '',
       followers: existingActor.followers || '', posts: existingActor.posts || '', following: existingActor.following || '',
       avg_likes: existingActor.avg_likes || '', avg_comments: existingActor.avg_comments || '',
       height: existingActor.height || '', language: existingActor.language || '', brand_keyword: existingActor.brand_keyword || '',
     });
-    setCareers(existingActor.careers.map(c => ({ category: c.category, year_label: c.year_label, title: c.title, description: c.description || '' })));
+    setCareers(existingActor.careers.map(c => ({ category: c.category, year_label: c.year_label, title: c.title, description: c.description || '', youtube_url: c.youtube_url || '', images: (c.career_images || []).map(ci => ({ image_url: ci.image_url })) })));
     if (existingActor.insights) {
       const ins = existingActor.insights;
       setInsight({
@@ -104,7 +107,20 @@ export default function AdminActorForm() {
       const promises: PromiseLike<any>[] = [];
 
       if (careers.length > 0) {
-        promises.push(supabase.from('careers').insert(careers.map((c, i) => ({ ...c, actor_id: actorId, sort_order: i }))));
+        for (let i = 0; i < careers.length; i++) {
+          const c = careers[i];
+          const { data: careerRow, error: cErr } = await supabase.from('careers').insert([{
+            actor_id: actorId, category: c.category, year_label: c.year_label, title: c.title, description: c.description || null, youtube_url: c.youtube_url || null, sort_order: i,
+          }]).select().single();
+          if (cErr) throw cErr;
+          const validImages = c.images.filter(img => img.image_url.trim());
+          if (validImages.length > 0) {
+            const { error: ciErr } = await supabase.from('career_images').insert(
+              validImages.map((img, si) => ({ career_id: careerRow.id, image_url: img.image_url, sort_order: si }))
+            );
+            if (ciErr) throw ciErr;
+          }
+        }
       }
       if (Object.values(insight).some(v => v)) {
         promises.push(supabase.from('insights').insert([{
@@ -217,6 +233,8 @@ export default function AdminActorForm() {
             {field('name_en', '이름 (영문)')}
             {field('slug', 'URL 슬러그 *')}
             {field('instagram_id', '인스타그램 ID')}
+            {field('homepage_url', '공식 홈페이지 URL')}
+            {field('namuwiki_url', '나무위키 URL (관리자용)')}
             {field('followers', '팔로워')}
             {field('posts', '게시물 수')}
             {field('following', '팔로잉')}
@@ -245,19 +263,43 @@ export default function AdminActorForm() {
         {/* 경력 */}
         <Section title="경력 (Career)">
           <DraggableList items={careers} droppableId="careers" onReorder={setCareers} renderItem={(c, i) => (
-            <div className="flex gap-2 items-start mb-2">
-              <select value={c.category} onChange={e => updateItem(careers, i, { category: e.target.value }, setCareers)}
-                className="border border-input rounded-md px-2 py-2 text-sm bg-background">
-                <option value="drama_film">Drama & Film</option>
-                <option value="brand_editorial">Brand & Editorial</option>
-              </select>
-              <Input placeholder="연도" value={c.year_label} onChange={e => updateItem(careers, i, { year_label: e.target.value }, setCareers)} className="w-20" />
-              <Input placeholder="제목" value={c.title} onChange={e => updateItem(careers, i, { title: e.target.value }, setCareers)} className="flex-1" />
-              <Input placeholder="설명" value={c.description} onChange={e => updateItem(careers, i, { description: e.target.value }, setCareers)} className="flex-1" />
-              <Button variant="outline" size="sm" onClick={() => setCareers(careers.filter((_, j) => j !== i))} className="text-destructive shrink-0">✕</Button>
+            <div className="mb-4 p-4 border border-border rounded-lg bg-secondary/30">
+              <div className="flex gap-2 items-start mb-2">
+                <select value={c.category} onChange={e => updateItem(careers, i, { category: e.target.value }, setCareers)}
+                  className="border border-input rounded-md px-2 py-2 text-sm bg-background">
+                  <option value="drama_film">Drama & Film</option>
+                  <option value="brand_editorial">Brand & Editorial</option>
+                </select>
+                <Input placeholder="연도" value={c.year_label} onChange={e => updateItem(careers, i, { year_label: e.target.value }, setCareers)} className="w-20" />
+                <Input placeholder="제목" value={c.title} onChange={e => updateItem(careers, i, { title: e.target.value }, setCareers)} className="flex-1" />
+                <Input placeholder="설명" value={c.description} onChange={e => updateItem(careers, i, { description: e.target.value }, setCareers)} className="flex-1" />
+                <Button variant="outline" size="sm" onClick={() => setCareers(careers.filter((_, j) => j !== i))} className="text-destructive shrink-0">✕</Button>
+              </div>
+              <div className="flex gap-2 items-center mb-2">
+                <Input placeholder="YouTube URL (선택)" value={c.youtube_url} onChange={e => updateItem(careers, i, { youtube_url: e.target.value }, setCareers)} className="flex-1" />
+              </div>
+              <div className="pl-2">
+                <p className="text-xs font-bold text-muted-foreground mb-1">스틸컷 이미지 (최대 4장)</p>
+                {c.images.map((img, ii) => (
+                  <div key={ii} className="flex gap-2 items-center mb-1">
+                    <Input placeholder="이미지 URL" value={img.image_url} onChange={e => {
+                      const n = [...careers]; n[i].images[ii] = { image_url: e.target.value }; setCareers(n);
+                    }} className="flex-1" />
+                    {img.image_url && <img src={img.image_url} alt="" className="w-8 h-8 rounded object-cover shrink-0 border border-border" />}
+                    <Button variant="outline" size="sm" onClick={() => {
+                      const n = [...careers]; n[i].images = n[i].images.filter((_, j) => j !== ii); setCareers(n);
+                    }} className="text-destructive shrink-0">✕</Button>
+                  </div>
+                ))}
+                {c.images.length < 4 && (
+                  <Button variant="outline" size="sm" onClick={() => {
+                    const n = [...careers]; n[i].images = [...n[i].images, { image_url: '' }]; setCareers(n);
+                  }}>+ 스틸컷 추가</Button>
+                )}
+              </div>
             </div>
           )} />
-          <Button variant="outline" size="sm" onClick={() => setCareers([...careers, { category: 'drama_film', year_label: '', title: '', description: '' }])}>+ 경력 추가</Button>
+          <Button variant="outline" size="sm" onClick={() => setCareers([...careers, { category: 'drama_film', year_label: '', title: '', description: '', youtube_url: '', images: [] }])}>+ 경력 추가</Button>
         </Section>
 
         {/* 인사이트 */}

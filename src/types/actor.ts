@@ -5,6 +5,8 @@ export interface Actor {
   slug: string;
   profile_image_url: string | null;
   instagram_id: string | null;
+  homepage_url: string | null;
+  namuwiki_url: string | null;
   followers: string | null;
   posts: string | null;
   following: string | null;
@@ -23,6 +25,13 @@ export interface ActorImage {
   sort_order: number;
 }
 
+export interface CareerImage {
+  id: string;
+  career_id: string;
+  image_url: string;
+  sort_order: number;
+}
+
 export interface Career {
   id: string;
   actor_id: string;
@@ -30,7 +39,9 @@ export interface Career {
   year_label: string;
   title: string;
   description: string | null;
+  youtube_url: string | null;
   sort_order: number;
+  career_images: CareerImage[];
 }
 
 export interface Insight {
