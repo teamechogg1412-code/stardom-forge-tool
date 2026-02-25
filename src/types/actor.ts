@@ -57,8 +57,18 @@ export interface Keyword {
 export interface Video {
   id: string;
   actor_id: string;
+  category: string;
   project_name: string;
+  year_label: string;
+  sort_order: number;
+  video_links: VideoLink[];
+}
+
+export interface VideoLink {
+  id: string;
+  video_id: string;
   youtube_url: string;
+  link_label: string;
   sort_order: number;
 }
 
@@ -66,7 +76,25 @@ export interface Award {
   id: string;
   actor_id: string;
   title: string;
+  year_label: string | null;
   tag_style: string;
+}
+
+export interface Editorial {
+  id: string;
+  actor_id: string;
+  year_label: string;
+  media_name: string;
+  sort_order: number;
+  editorial_media: EditorialMedia[];
+}
+
+export interface EditorialMedia {
+  id: string;
+  editorial_id: string;
+  media_url: string;
+  media_type: 'image' | 'video';
+  sort_order: number;
 }
 
 export interface ActorTag {
@@ -84,4 +112,5 @@ export interface ActorFull extends Actor {
   videos: Video[];
   awards: Award[];
   actor_tags: ActorTag[];
+  editorials: Editorial[];
 }

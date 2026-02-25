@@ -59,7 +59,7 @@ export default function ProfileHero({ actor }: { actor: ActorFull }) {
             <div className="flex flex-wrap gap-2">
               {actor.awards.map(award => (
                 <span key={award.id} className="text-sm px-4 py-1.5 font-bold rounded bg-accent text-accent-foreground border border-accent">
-                  🏆 {award.title}
+                  🏆 {award.year_label && `(${award.year_label}) `}{award.title}
                 </span>
               ))}
             </div>

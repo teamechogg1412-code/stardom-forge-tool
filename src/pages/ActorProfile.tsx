@@ -6,6 +6,7 @@ import CareerPortfolio from '@/components/actor/CareerPortfolio';
 import MarketInsight from '@/components/actor/MarketInsight';
 import KeywordCloud from '@/components/actor/KeywordCloud';
 import VideoSection from '@/components/actor/VideoSection';
+import EditorialSection from '@/components/actor/EditorialSection';
 
 export default function ActorProfile() {
   const { slug } = useParams<{ slug: string }>();
@@ -41,6 +42,7 @@ export default function ActorProfile() {
         <div id="career"><CareerPortfolio careers={actor.careers} /></div>
         <div id="insight"><MarketInsight insight={actor.insights} /></div>
         <KeywordCloud keywords={actor.keywords} />
+        <div id="editorial"><EditorialSection editorials={actor.editorials} /></div>
         <div id="videos"><VideoSection videos={actor.videos} /></div>
         <footer className="py-16 text-center border-t-[5px] border-foreground font-black text-sm">
           © {new Date().getFullYear()} {actor.name_en || actor.name_ko} — Official Strategy Portfolio
