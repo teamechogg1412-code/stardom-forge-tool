@@ -99,7 +99,50 @@ export function useDeleteActor() {
   });
 }
 
-export function getYouTubeId(url: string): string | null {
-  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([^&\n?#]+)/);
-  return match ? match[1] : null;
+const YOUTUBE_ID_PATTERN = /^[a-zA-Z0-9_-]{11}$/;
+
+function isValidYouTubeId(value: string | null | undefined): boolean {
+  return !!value && YOUTUBE_ID_PATTERN.test(value);
+}
+
+export function getYouTubeId(input: string): string | null {
+  const value = input?.trim();
+  if (!value) return null;
+
+  if (isValidYouTubeId(value)) return value;
+
+  try {
+    const url = new URL(value);
+    const host = url.hostname.replace('www.', '');
+
+    if (host === 'youtu.be') {
+      const id = url.pathname.split('/').filter(Boolean)[0];
+      return isValidYouTubeId(id) ? id : null;
+    }
+
+    if (host.endsWith('youtube.com') || host.endsWith('youtube-nocookie.com')) {
+      const fromQuery = url.searchParams.get('v');
+      if (isValidYouTubeId(fromQuery)) return fromQuery;
+
+      const segments = url.pathname.split('/').filter(Boolean);
+      const targetIndex = segments.findIndex(segment => ['embed', 'shorts', 'live', 'v'].includes(segment));
+      if (targetIndex >= 0) {
+        const id = segments[targetIndex + 1];
+        return isValidYouTubeId(id) ? id : null;
+      }
+
+      const directId = segments[0];
+      if (isValidYouTubeId(directId)) return directId;
+    }
+  } catch {
+    // Non-URL strings fall back to regex extraction below.
+  }
+
+  const fallback = value.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?.*v=|embed\/|shorts\/|live\/|v\/))([a-zA-Z0-9_-]{11})/);
+  return fallback ? fallback[1] : null;
+}
+
+export function normalizeYouTubeUrl(input: string): string | null {
+  const id = getYouTubeId(input);
+  return id ? `https://www.youtube.com/watch?v=${id}` : null;
 }

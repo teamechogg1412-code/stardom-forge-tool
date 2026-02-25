@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
-import { useActorById } from '@/hooks/useActorData';
+import { useActorById, normalizeYouTubeUrl } from '@/hooks/useActorData';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -62,6 +62,24 @@ export default function AdminActorForm() {
       toast({ title: '오류', description: '이름과 슬러그는 필수입니다.', variant: 'destructive' });
       return;
     }
+
+    const enteredVideos = videos.filter(v => v.project_name.trim() || v.youtube_url.trim());
+    const hasInvalidVideo = enteredVideos.some(v => !v.project_name.trim() || !normalizeYouTubeUrl(v.youtube_url));
+
+    if (hasInvalidVideo) {
+      toast({
+        title: '오류',
+        description: '영상 항목은 작품명과 유효한 YouTube URL을 함께 입력해주세요.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const normalizedVideos = enteredVideos.map(v => ({
+      project_name: v.project_name.trim(),
+      youtube_url: normalizeYouTubeUrl(v.youtube_url)!,
+    }));
+
     setSaving(true);
     try {
       let actorId = id;
@@ -108,8 +126,8 @@ export default function AdminActorForm() {
       if (keywords.length > 0) {
         promises.push(supabase.from('keywords').insert(keywords.map(k => ({ ...k, actor_id: actorId }))));
       }
-      if (videos.length > 0) {
-        promises.push(supabase.from('videos').insert(videos.map((v, i) => ({ ...v, actor_id: actorId, sort_order: i }))));
+      if (normalizedVideos.length > 0) {
+        promises.push(supabase.from('videos').insert(normalizedVideos.map((v, i) => ({ ...v, actor_id: actorId, sort_order: i }))));
       }
       if (awards.length > 0) {
         promises.push(supabase.from('awards').insert(awards.map(a => ({ ...a, actor_id: actorId }))));
