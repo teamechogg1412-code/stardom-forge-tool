@@ -126,13 +126,27 @@ export default function AdminActorForm() {
       if (videos.length > 0) {
         for (let i = 0; i < videos.length; i++) {
           const v = videos[i];
+          const normalizedLinks = v.links.filter(link => link.youtube_url.trim());
+          const primaryYouTubeUrl = normalizedLinks[0]?.youtube_url ?? '';
+
           const { data: videoRow, error: vErr } = await supabase.from('videos').insert([{
-            actor_id: actorId, category: v.category, project_name: v.project_name, year_label: v.year_label, sort_order: i,
+            actor_id: actorId,
+            category: v.category,
+            project_name: v.project_name,
+            year_label: v.year_label,
+            youtube_url: primaryYouTubeUrl,
+            sort_order: i,
           }]).select().single();
           if (vErr) throw vErr;
-          if (v.links.length > 0) {
+
+          if (normalizedLinks.length > 0) {
             const { error: lErr } = await supabase.from('video_links').insert(
-              v.links.map((l, li) => ({ video_id: videoRow.id, youtube_url: l.youtube_url, link_label: l.link_label, sort_order: li }))
+              normalizedLinks.map((l, li) => ({
+                video_id: videoRow.id,
+                youtube_url: l.youtube_url,
+                link_label: l.link_label,
+                sort_order: li,
+              }))
             );
             if (lErr) throw lErr;
           }
