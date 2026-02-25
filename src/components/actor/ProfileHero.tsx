@@ -53,11 +53,11 @@ export default function ProfileHero({ actor }: { actor: ActorFull }) {
           </div>
         )}
 
-        {actor.awards.length > 0 && (
+        {actor.awards.filter(a => a.show_on_profile).length > 0 && (
           <div>
             <h3 className="text-xs text-muted-foreground font-extrabold uppercase mb-2.5">Honors & Awards</h3>
             <div className="flex flex-wrap gap-2">
-              {actor.awards.map(award => (
+              {actor.awards.filter(a => a.show_on_profile).map(award => (
                 <span key={award.id} className="text-sm px-4 py-1.5 font-bold rounded bg-accent text-accent-foreground border border-accent">
                   🏆 {award.year_label && `(${award.year_label}) `}{award.title}
                 </span>

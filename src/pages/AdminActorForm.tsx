@@ -14,7 +14,7 @@ type CareerItem = { category: string; year_label: string; title: string; descrip
 type KeywordItem = { keyword: string; size_class: string };
 type VideoLink = { youtube_url: string; link_label: string };
 type VideoItem = { category: string; project_name: string; year_label: string; links: VideoLink[] };
-type AwardItem = { title: string; year_label: string; tag_style: string };
+type AwardItem = { title: string; year_label: string; tag_style: string; show_on_profile: boolean };
 type TagItem = { tag_text: string; tag_style: string };
 type ImageItem = { image_url: string };
 type EditorialMediaItem = { media_url: string; media_type: 'image' | 'video' };
@@ -67,7 +67,7 @@ export default function AdminActorForm() {
     }
     setKeywords(existingActor.keywords.map(k => ({ keyword: k.keyword, size_class: k.size_class })));
     setVideos(existingActor.videos.map(v => ({ category: v.category || 'drama_film', project_name: v.project_name, year_label: v.year_label || '', links: (v.video_links || []).map(l => ({ youtube_url: l.youtube_url, link_label: l.link_label || '' })) })));
-    setAwards(existingActor.awards.map(a => ({ title: a.title, year_label: a.year_label || '', tag_style: a.tag_style })));
+    setAwards(existingActor.awards.map(a => ({ title: a.title, year_label: a.year_label || '', tag_style: a.tag_style, show_on_profile: (a as any).show_on_profile ?? true })));
     setTags(existingActor.actor_tags.map(t => ({ tag_text: t.tag_text, tag_style: t.tag_style })));
     setImages(existingActor.images.map(img => ({ image_url: img.image_url })));
     setEditorials(existingActor.editorials.map(e => ({
@@ -169,7 +169,7 @@ export default function AdminActorForm() {
         }
       }
       if (awards.length > 0) {
-        promises.push(supabase.from('awards').insert(awards.map(a => ({ title: a.title, year_label: a.year_label || null, tag_style: a.tag_style, actor_id: actorId }))));
+        promises.push(supabase.from('awards').insert(awards.map(a => ({ title: a.title, year_label: a.year_label || null, tag_style: a.tag_style, show_on_profile: a.show_on_profile, actor_id: actorId }))));
       }
       if (tags.length > 0) {
         promises.push(supabase.from('actor_tags').insert(tags.map(t => ({ ...t, actor_id: actorId }))));
@@ -415,6 +415,10 @@ export default function AdminActorForm() {
         <Section title="수상 내역">
           <DraggableList items={awards} droppableId="awards" onReorder={setAwards} renderItem={(a, i) => (
             <div className="flex gap-2 items-center mb-2">
+              <label className="flex items-center gap-1 shrink-0 cursor-pointer" title="프로필에 표시">
+                <input type="checkbox" checked={a.show_on_profile} onChange={e => updateItem(awards, i, { show_on_profile: e.target.checked }, setAwards)} className="w-4 h-4 accent-primary" />
+                <span className="text-[0.65rem] text-muted-foreground font-bold">표시</span>
+              </label>
               <Input placeholder="연도" value={a.year_label} onChange={e => updateItem(awards, i, { year_label: e.target.value }, setAwards)} className="w-20" />
               <Input placeholder="수상명" value={a.title} onChange={e => updateItem(awards, i, { title: e.target.value }, setAwards)} className="flex-1" />
               <select value={a.tag_style} onChange={e => updateItem(awards, i, { tag_style: e.target.value }, setAwards)}
@@ -426,7 +430,7 @@ export default function AdminActorForm() {
               <Button variant="outline" size="sm" onClick={() => setAwards(awards.filter((_, j) => j !== i))} className="text-destructive">✕</Button>
             </div>
           )} />
-          <Button variant="outline" size="sm" onClick={() => setAwards([...awards, { title: '', year_label: '', tag_style: 'award' }])}>+ 수상 추가</Button>
+          <Button variant="outline" size="sm" onClick={() => setAwards([...awards, { title: '', year_label: '', tag_style: 'award', show_on_profile: true }])}>+ 수상 추가</Button>
         </Section>
 
         {/* 태그 */}
