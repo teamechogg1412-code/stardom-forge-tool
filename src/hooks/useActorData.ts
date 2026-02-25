@@ -8,10 +8,14 @@ export function useActors() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('actors')
-        .select('*')
+        .select('*, actor_images(image_url, sort_order)')
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data as Actor[];
+      return (data as any[]).map(a => ({
+        ...a,
+        profile_image_url: a.profile_image_url || (a.actor_images?.sort((x: any, y: any) => x.sort_order - y.sort_order)[0]?.image_url ?? null),
+        actor_images: undefined,
+      })) as Actor[];
     },
   });
 }
