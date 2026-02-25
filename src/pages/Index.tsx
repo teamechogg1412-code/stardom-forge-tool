@@ -14,8 +14,26 @@ export default function Index() {
       </nav>
 
       <div className="px-[8%] py-20">
-        <h1 className="text-4xl font-black text-primary mb-2 tracking-tight">Strategy Portfolio</h1>
-        <p className="text-muted-foreground font-bold mb-16">등록된 배우 목록</p>
+        <div className="flex items-end gap-6 mb-16">
+          <div className="flex-1">
+            <h1 className="text-4xl font-black text-primary mb-2 tracking-tight">Strategy Portfolio</h1>
+            <p className="text-muted-foreground font-bold">등록된 배우 목록</p>
+          </div>
+          {actors && actors.length > 0 && (
+            <div className="flex -space-x-3">
+              {actors.filter(a => a.profile_image_url).slice(0, 6).map(actor => (
+                <div key={actor.id} className="w-11 h-11 rounded-full border-2 border-background overflow-hidden shadow-sm">
+                  <img src={actor.profile_image_url!} alt={actor.name_ko} className="w-full h-full object-cover" />
+                </div>
+              ))}
+              {actors.length > 6 && (
+                <div className="w-11 h-11 rounded-full border-2 border-background bg-muted flex items-center justify-center text-xs font-black text-muted-foreground shadow-sm">
+                  +{actors.length - 6}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         {isLoading ? (
           <div className="flex justify-center py-20">
