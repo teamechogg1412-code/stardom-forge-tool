@@ -2,14 +2,24 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import type { Actor, ActorFull } from "@/types/actor";
 
-export function useActors() {
+export function useActors(options?: { publishedOnly?: boolean; tag?: string; all?: boolean }) {
+  const { publishedOnly = false, tag, all = false } = options || {};
   return useQuery({
-    queryKey: ["actors"],
+    queryKey: ["actors", { publishedOnly, tag, all }],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("actors")
         .select("*, actor_images(image_url, sort_order)")
         .order("created_at", { ascending: false });
+      
+      if (!all && publishedOnly) {
+        query = query.eq("is_published", true);
+      }
+      if (tag) {
+        query = query.eq("group_tag", tag);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return (data as any[]).map((a) => ({
         ...a,

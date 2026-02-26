@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useActors } from '@/hooks/useActorData';
 
 export default function Index() {
-  const { data: actors, isLoading } = useActors();
+  const { data: actors, isLoading } = useActors({ publishedOnly: true });
 
   return (
     <div className="min-h-screen bg-background">

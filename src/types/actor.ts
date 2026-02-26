@@ -15,8 +15,10 @@ export interface Actor {
   height: string | null;
   language: string | null;
   brand_keyword: string | null;
-  bio_headline: string | null; // 추가
+  bio_headline: string | null;
   bio_text: string | null;
+  is_published: boolean;
+  group_tag: string;
   created_at: string;
 }
 

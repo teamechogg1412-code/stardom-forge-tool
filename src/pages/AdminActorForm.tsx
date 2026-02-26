@@ -28,6 +28,7 @@ export default function AdminActorForm() {
     name_ko: '', name_en: '', slug: '', profile_image_url: '', instagram_id: '',
     homepage_url: '', namuwiki_url: '', followers: '', posts: '', following: '',
     height: '', language: '', brand_keyword: '', bio_headline: '', bio_text: '',
+    is_published: true, group_tag: 'general',
   });
 
   const [careers, setCareers] = useState<any[]>([]);
@@ -58,6 +59,8 @@ export default function AdminActorForm() {
       brand_keyword: existingActor.brand_keyword || '',
       bio_headline: (existingActor as any).bio_headline || '',
       bio_text: (existingActor as any).bio_text || '',
+      is_published: existingActor.is_published ?? true,
+      group_tag: (existingActor as any).group_tag || 'general',
     });
 
     // 커리어 데이터 매핑 (career_links -> links)

@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import ActorProfile from "./pages/ActorProfile";
 import Admin from "./pages/Admin";
 import AdminActorForm from "./pages/AdminActorForm";
+import EchoPage from "./pages/EchoPage";
+import TotalPage from "./pages/TotalPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -20,6 +22,8 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/actor/:slug" element={<ActorProfile />} />
+          <Route path="/echo" element={<EchoPage />} />
+          <Route path="/total" element={<TotalPage />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/actor/:id" element={<AdminActorForm />} />
           <Route path="*" element={<NotFound />} />
