@@ -2,6 +2,7 @@ import React from 'react';
 import SectionWrapper from '../SectionWrapper';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export default function BasicInfoSection({ form, setForm }: any) {
   const fields = [
@@ -40,6 +41,26 @@ export default function BasicInfoSection({ form, setForm }: any) {
             onChange={e => setForm({ ...form, bio_text: e.target.value })} 
             className="w-full mt-1 min-h-[150px] p-3 border-2 border-slate-100 rounded-md bg-background text-sm leading-relaxed outline-none focus:border-primary" 
           />
+        </div>
+        {/* 노출 제어 */}
+        <div className="col-span-full mt-6 flex items-center gap-8 p-4 bg-muted/50 rounded-lg border">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="is_published"
+              checked={form.is_published}
+              onCheckedChange={(checked) => setForm({ ...form, is_published: !!checked })}
+            />
+            <Label htmlFor="is_published" className="text-sm font-bold cursor-pointer">공개 (is_published)</Label>
+          </div>
+          <div className="flex-1">
+            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">그룹 태그 (group_tag)</Label>
+            <Input
+              value={form.group_tag}
+              onChange={e => setForm({ ...form, group_tag: e.target.value })}
+              placeholder="예: general, echo, hidden"
+              className="mt-1 font-bold border-2 border-slate-100 focus:border-primary"
+            />
+          </div>
         </div>
       </div>
     </SectionWrapper>
