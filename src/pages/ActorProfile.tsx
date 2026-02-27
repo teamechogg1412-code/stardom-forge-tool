@@ -78,7 +78,6 @@ export default function ActorProfile() {
 
         {/* Contact */}
         <ContactSection actorId={actor.id} actorName={actor.name_ko} />
-        </footer>
       </div>
     </>
   );
