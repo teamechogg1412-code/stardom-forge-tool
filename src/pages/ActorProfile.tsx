@@ -14,6 +14,7 @@ import ContactSection from "@/components/actor/ContactSection";
 export default function ActorProfile() {
   const { slug } = useParams<{ slug: string }>();
   const { data: actor, isLoading, error } = useActorBySlug(slug || "");
+  useAccessLog(actor?.id);
 
   if (isLoading) {
     return (
