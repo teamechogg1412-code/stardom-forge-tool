@@ -14,7 +14,131 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      access_logs: {
+        Row: {
+          actor_id: string
+          duration_seconds: number | null
+          entry_time: string
+          exit_time: string | null
+          id: string
+          ip_address: string | null
+          session_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          actor_id: string
+          duration_seconds?: number | null
+          entry_time?: string
+          exit_time?: string | null
+          id?: string
+          ip_address?: string | null
+          session_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          actor_id?: string
+          duration_seconds?: number | null
+          entry_time?: string
+          exit_time?: string | null
+          id?: string
+          ip_address?: string | null
+          session_id?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      actor_staff_assignment: {
+        Row: {
+          actor_id: string
+          assignment_type: string
+          created_at: string
+          id: string
+          staff_id: string
+        }
+        Insert: {
+          actor_id: string
+          assignment_type?: string
+          created_at?: string
+          id?: string
+          staff_id: string
+        }
+        Update: {
+          actor_id?: string
+          assignment_type?: string
+          created_at?: string
+          id?: string
+          staff_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "actor_staff_assignment_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_inquiries: {
+        Row: {
+          actor_id: string
+          created_at: string
+          id: string
+          message: string
+          name: string
+          organization: string | null
+        }
+        Insert: {
+          actor_id: string
+          created_at?: string
+          id?: string
+          message: string
+          name: string
+          organization?: string | null
+        }
+        Update: {
+          actor_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          name?: string
+          organization?: string | null
+        }
+        Relationships: []
+      }
+      staff: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          role_type: string
+          telegram_chat_id: string | null
+          telegram_token: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          role_type?: string
+          telegram_chat_id?: string | null
+          telegram_token?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          role_type?: string
+          telegram_chat_id?: string | null
+          telegram_token?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
