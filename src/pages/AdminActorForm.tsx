@@ -16,6 +16,7 @@ import VisualArchiveSection from '../components/admin/sections/VisualArchiveSect
 import EditorialSection from '../components/admin/sections/EditorialSection';
 import AwardSection from '../components/admin/sections/AwardSection';
 import TagSection from '../components/admin/sections/TagSection';
+import StaffAssignmentSection from '../components/admin/sections/StaffAssignmentSection';
 
 export default function AdminActorForm() {
   const { id } = useParams<{ id: string }>();
@@ -197,6 +198,7 @@ export default function AdminActorForm() {
             <BasicInfoSection form={form} setForm={setForm} />
             <ProfileImageSection images={images} setImages={setImages} />
             <TagSection tags={tags} setTags={setTags} />
+            {!isNew && id && <StaffAssignmentSection actorId={id} />}
           </TabsContent>
 
           <TabsContent value="career" className="focus-visible:outline-none">

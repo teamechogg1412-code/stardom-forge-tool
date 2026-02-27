@@ -86,6 +86,12 @@ export default function Admin() {
           <Link to="/admin/actor/new">
             <Button className="bg-primary text-primary-foreground font-bold">+ 새 배우 등록</Button>
           </Link>
+          <Link to="/admin/staff">
+            <Button variant="outline" className="font-bold">담당자 관리</Button>
+          </Link>
+          <Link to="/admin/logs">
+            <Button variant="outline" className="font-bold">열람 로그</Button>
+          </Link>
         </div>
 
         {isLoading ? (

@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useActorBySlug } from "@/hooks/useActorData";
+import { useAccessLog } from "@/hooks/useAccessLog";
 import ActorNav from "@/components/actor/ActorNav";
 import ProfileHero from "@/components/actor/ProfileHero";
 import CareerPortfolio from "@/components/actor/CareerPortfolio";
@@ -8,10 +9,12 @@ import KeywordCloud from "@/components/actor/KeywordCloud";
 import VideoSection from "@/components/actor/VideoSection";
 import EditorialSection from "@/components/actor/EditorialSection";
 import ArtistBio from "@/components/actor/ArtistBio";
+import ContactSection from "@/components/actor/ContactSection";
 
 export default function ActorProfile() {
   const { slug } = useParams<{ slug: string }>();
   const { data: actor, isLoading, error } = useActorBySlug(slug || "");
+  useAccessLog(actor?.id);
 
   if (isLoading) {
     return (
@@ -72,6 +75,9 @@ export default function ActorProfile() {
         <footer className="py-16 text-center border-t-[5px] border-foreground font-black text-sm">
           © {new Date().getFullYear()} {actor.name_en || actor.name_ko} — Official Strategy Portfolio
         </footer>
+
+        {/* Contact */}
+        <ContactSection actorId={actor.id} actorName={actor.name_ko} />
       </div>
     </>
   );

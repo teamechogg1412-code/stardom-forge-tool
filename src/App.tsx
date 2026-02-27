@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import ActorProfile from "./pages/ActorProfile";
 import Admin from "./pages/Admin";
 import AdminActorForm from "./pages/AdminActorForm";
+import AdminStaff from "./pages/AdminStaff";
+import AdminAccessLogs from "./pages/AdminAccessLogs";
 import EchoPage from "./pages/EchoPage";
 import TotalPage from "./pages/TotalPage";
 import NotFound from "./pages/NotFound";
@@ -26,6 +28,8 @@ const App = () => (
           <Route path="/total" element={<TotalPage />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/actor/:id" element={<AdminActorForm />} />
+          <Route path="/admin/staff" element={<AdminStaff />} />
+          <Route path="/admin/logs" element={<AdminAccessLogs />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
