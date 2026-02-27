@@ -75,6 +75,10 @@ export default function ActorProfile() {
         <footer className="py-16 text-center border-t-[5px] border-foreground font-black text-sm">
           © {new Date().getFullYear()} {actor.name_en || actor.name_ko} — Official Strategy Portfolio
         </footer>
+
+        {/* Contact */}
+        <ContactSection actorId={actor.id} actorName={actor.name_ko} />
+        </footer>
       </div>
     </>
   );
