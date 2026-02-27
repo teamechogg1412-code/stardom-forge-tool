@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import ArtistsPage from "./pages/ArtistsPage";
 import ActorProfile from "./pages/ActorProfile";
 import Admin from "./pages/Admin";
 import AdminActorForm from "./pages/AdminActorForm";
@@ -23,6 +24,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/artists" element={<ArtistsPage />} />
           <Route path="/actor/:slug" element={<ActorProfile />} />
           <Route path="/echo" element={<EchoPage />} />
           <Route path="/total" element={<TotalPage />} />
