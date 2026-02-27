@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useActorBySlug } from "@/hooks/useActorData";
+import { useAccessLog } from "@/hooks/useAccessLog";
 import ActorNav from "@/components/actor/ActorNav";
 import ProfileHero from "@/components/actor/ProfileHero";
 import CareerPortfolio from "@/components/actor/CareerPortfolio";
@@ -8,6 +9,7 @@ import KeywordCloud from "@/components/actor/KeywordCloud";
 import VideoSection from "@/components/actor/VideoSection";
 import EditorialSection from "@/components/actor/EditorialSection";
 import ArtistBio from "@/components/actor/ArtistBio";
+import ContactSection from "@/components/actor/ContactSection";
 
 export default function ActorProfile() {
   const { slug } = useParams<{ slug: string }>();
